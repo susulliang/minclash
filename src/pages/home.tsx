@@ -1,14 +1,17 @@
-import { Box, Button, Typography, Paper, CircularProgress } from '@mui/material'
+import { Box, Button, Typography, Paper, CircularProgress, IconButton, Tooltip } from '@mui/material'
+import { InfoOutlined } from '@mui/icons-material'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BasePage } from '@/components/base'
 import { useCurrentProxy } from '@/hooks/use-current-proxy'
 import delayManager from '@/services/delay'
 import { useNavigate } from 'react-router'
+import OriginalHome from './OriginalHome'
 
 const HomePage = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const [showOriginal, setShowOriginal] = useState(false)
   
   // Get current proxy info
   const { currentProxy, primaryGroupName } = useCurrentProxy()
@@ -25,10 +28,23 @@ const HomePage = () => {
 
   const isConnected = !!currentProxy && delay !== undefined && delay > 0 && delay !== 1e6
 
+  if (showOriginal) {
+    return <OriginalHome onBack={() => setShowOriginal(false)} />
+  }
+
   return (
     <BasePage
       title={t('home.page.title')}
       contentStyle={{ padding: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 80px)' }}
+      header={
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Tooltip title="Show original UI">
+            <IconButton onClick={() => setShowOriginal(true)} size="small" color="inherit">
+              <InfoOutlined />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      }
     >
       <Paper elevation={3} sx={{ padding: 4, maxWidth: 500, width: '100%', borderRadius: 2 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>
