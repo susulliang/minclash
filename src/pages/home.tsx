@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BasePage } from '@/components/base'
 import { useCurrentProxy } from '@/hooks/use-current-proxy'
-import { useProxyDelayState } from '@/hooks/use-proxy-delay-state'
+import delayManager from '@/services/delay'
 import { useNavigate } from 'react-router'
 
 const HomePage = () => {
@@ -11,21 +11,19 @@ const HomePage = () => {
   const navigate = useNavigate()
   
   // Get current proxy info
-  const { current, group } = useCurrentProxy()
-  const { getDelay } = useProxyDelayState()
-
+  const { currentProxy, primaryGroupName } = useCurrentProxy()
   const [loading, setLoading] = useState(true)
   const [delay, setDelay] = useState<number | undefined>()
 
   useEffect(() => {
-    if (current?.name) {
-      const d = getDelay(current.name, current.type)
-      setDelay(d)
+    if (currentProxy?.name && primaryGroupName) {
+      const d = delayManager.getDelay(currentProxy.name, primaryGroupName)
+      setTimeout(() => setDelay(d), 0)
     }
-    setLoading(false)
-  }, [current, getDelay])
+    setTimeout(() => setLoading(false), 0)
+  }, [currentProxy, primaryGroupName])
 
-  const isConnected = !!current && delay !== undefined && delay > 0
+  const isConnected = !!currentProxy && delay !== undefined && delay > 0 && delay !== 1e6
 
   return (
     <BasePage
@@ -56,7 +54,7 @@ const HomePage = () => {
           <Box sx={{ width: '100%', textAlign: 'center' }}>
             <Typography variant="h6" color="text.secondary">Node:</Typography>
             <Typography variant="h5" sx={{ fontWeight: 'medium', wordBreak: 'break-all' }}>
-              {loading ? <CircularProgress size={20} /> : (current?.name || 'No Node Selected')}
+              {loading ? <CircularProgress size={20} /> : (currentProxy?.name || 'No Node Selected')}
             </Typography>
           </Box>
 
@@ -67,7 +65,7 @@ const HomePage = () => {
               <CircularProgress size={20} />
             ) : (
               <Typography variant="h5" sx={{ fontWeight: 'medium' }}>
-                {delay !== undefined ? `${delay}ms` : 'N/A'}
+                {delay !== undefined && delay > 0 && delay !== 1e6 ? `${delay}ms` : 'N/A'}
               </Typography>
             )}
           </Box>
